@@ -1,0 +1,24 @@
+{
+  "name": "nodekitten",
+  "version": "0.0.2",
+  "description": "A Twitter bot that alerts about Node.js releases.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "node",
+    "twitter",
+    "bot"
+  ],
+  "author": "Tierney Cyren <hello@bnb.im> (http://bnb.im)",
+  "license": "MIT",
+  "dependencies": {
+    "@octokit/rest": "^15.8.0",
+    "twit": "^2.2.9"
+  },
+  "devDependencies": {
+    "@nodesource/ncm-project": "^3.1.0"
+  }
+}
