@@ -1,6 +1,6 @@
 {
   "name": "nodekitten",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A Twitter bot that alerts about Node.js releases.",
   "main": "app.js",
   "scripts": {
