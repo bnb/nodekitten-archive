@@ -2,10 +2,10 @@ const octokit = require('@octokit/rest')()
 const twitter = require('twit')
 
 // Define variables for the application
-const INTERVAL = 25 * 1000 // 25 seconds
+const INTERVAL = 15 * 1000 // 25 seconds
 const owner   = "nodejs"
 const repo    = "node"
-const deployVersion = "v10.7.0"
+const deployVersion = "v10.8.0"
 const gitHubToken = process.env.GITHUB_TOKEN
 const twitterConsumerKey = process.env.CONSUMER_KEY
 const twitterConsumerSecret = process.env.CONSUMER_SECRET
@@ -61,13 +61,11 @@ const checkAndSendNewTweet = () => {
 const sendTweet = (tweetContent) => {
   if(process.env.NODE_ENV === "production") {
     twitterAPI.post('statuses/update', { status: tweetContent }, (error, data, response) => {
-      if (error) {
-        throw error
-      } else {
-        console.log(`~~ PRODUCTION MODE ~~`)
-        console.log(`\nThere's a new version out! Tweeting it: \n\n${tweetContent}`)
+      if (error) throw error
+      console.log(`~~ PRODUCTION MODE ~~`)
+      console.log(`\nThere's a new version out! Tweeting it: \n\n${tweetContent}\n`)
       }
-    })
+    )
   } else {
     console.log(`~~ DEVELOPMENT MODE ~~`)
     console.log(`There's a new version out! Here's what the tweet would look like: \n\n${tweetContent}\n`)
