@@ -1,95 +1,110 @@
-const octokit = require('@octokit/rest')()
+const request = require('request')
 const twitter = require('twit')
+const semver = require('semver')
+const fs = require('fs')
+const data = require('./data/releases.json')
 
 // Define variables for the application
-const INTERVAL = 15 * 1000 // 25 seconds
-const owner   = "nodejs"
-const repo    = "node"
-const deployVersion = "v10.8.0"
-const gitHubToken = process.env.GITHUB_TOKEN
+const INTERVAL = 15 * 1000 // 15 seconds
 const twitterConsumerKey = process.env.CONSUMER_KEY
 const twitterConsumerSecret = process.env.CONSUMER_SECRET
 const twitterAccessToken = process.env.ACCESS_TOKEN
 const twitterAccessTokenSecret = process.env.ACCESS_TOKEN_SECRET
-let previousVersion
+let url = 'https://nodejs.org/dist/index.json'
 
-// Authenticate with GitHub
-octokit.authenticate({
-  type: 'token',
-  token: gitHubToken
-})
-
-// Authenticate with Twitter
-const twitterAPI = new twitter({
-  consumer_key:         twitterConsumerKey,
-  consumer_secret:      twitterConsumerSecret,
-  access_token:         twitterAccessToken,
-  access_token_secret:  twitterAccessTokenSecret,
-  timeout_ms:           60*1000  // optional HTTP request timeout to apply to all requests.
-})
-
-// Do the work!
-const checkAndSendNewTweet = () => {
-  octokit.repos.getLatestRelease({owner, repo}, (error, result) => {
-    if (error) {
-      throw error
-    } else {
-      // Set variables for the data we need
-      const versionNumber = result.data.tag_name
-
-      // Check if the current version of Node.js pulled from GitHub is the same as the last one tweeted OR the one that the app was deployed with
-      if (versionNumber !== previousVersion && versionNumber !== deployVersion) {
-      // Content of the tweet
-        const tweet = `🙀 There's a new @nodejs release available! Node.js ${versionNumber} is out now.\n🔗 Release post (will be) here:\nhttps://nodejs.org/en/blog/release/${versionNumber}/`
-
-        sendTweet(tweet)
-        
-        // Once the tweet has been sent, update the previous version number so we don't duplicate content
-        previousVersion = versionNumber
-      } else {
-        if (previousVersion) {
-          console.log(`The most recent version NodeKitten tweeted about was: ${previousVersion}\n`)
-        } else {
-          console.log(`There haven't been any new releases since NodeKitten was deployed! The version it was deployed with was: ${deployVersion}\n`)
-        }
-      }
-    }
+// Main function
+// Calls: diffVersons
+const nodekitten = () => {
+  request(url, function (error, response, body) {
+    if (error) throw error
+    let raw = JSON.parse(body)
+    diffVersions(raw)
   })
+}
+
+const writeVersions = (json) => {
+  fs.writeFile('data/releases.json', json, (error) => {
+    if (error) throw error
+    console.log("JSON has been written to data/release.json")
+  })
+}
+
+// Expects stringified JSON to be passed
+// Calls: composeTweet
+const diffs = (localJSON, remoteJSON) => {
+
+  let local = JSON.parse(localJSON)
+  let remote = JSON.parse(remoteJSON)
+  let localArray = []
+  let remoteArray = []
+
+  for (let property in local) {
+    localArray.push(semver.valid(semver.coerce(local[property].version)))
+  }
+
+  for (let property in remote) {
+    remoteArray.push(semver.valid(semver.coerce(remote[property].version)))
+  }
+
+  let diff = remoteArray.filter(semver => !localArray.includes(semver))
+
+  diff.forEach(function(version) {
+    composeTweet(version)
+  })
+}
+
+// Build and send it
+const composeTweet = (version) => {
+  const tweet = `There's a new @nodejs release available! Node.js v${version} is out now! 🙀\n\n$ nvm install ${version}\n\n🔗 Release post (will be) here:\nhttps://nodejs.org/en/blog/release/${version}/`
+
+  sendTweet(tweet)
+}
+
+// Expects raw/parsed JSON to be passed
+const diffVersions = (json) => {
+  let normalizedLocalJSON = JSON.stringify(data)
+  let normalizedRemoteJSON = JSON.stringify(json)
+
+  if(normalizedLocalJSON !== normalizedRemoteJSON) {
+    diffs(normalizedLocalJSON, normalizedRemoteJSON)
+    writeVersions(normalizedRemoteJSON)
+  } else if (normalizedLocalJSON === normalizedRemoteJSON) {
+    console.log("No new versions have been released.")
+  } else {
+    console.log("Something is wrong with either the remote JSON data or the local JSON data...")
+  }
 }
 
 // Use the Twitter API to send out a Tweet, and console.log() that it's happened!
 const sendTweet = (tweetContent) => {
   if(process.env.NODE_ENV === "production") {
+    
+    const twitterAPI = new twitter({
+      consumer_key:         twitterConsumerKey,
+      consumer_secret:      twitterConsumerSecret,
+      access_token:         twitterAccessToken,
+      access_token_secret:  twitterAccessTokenSecret,
+      timeout_ms:           60*1000  // optional HTTP request timeout to apply to all requests.
+    })
+    
     twitterAPI.post('statuses/update', { status: tweetContent }, (error, data, response) => {
       if (error) throw error
-      console.log(`~~ PRODUCTION MODE ~~`)
+      console.log(`\n~~ PRODUCTION MODE ~~`)
       console.log(`\nThere's a new version out! Tweeting it: \n\n${tweetContent}\n`)
       }
     )
   } else {
-    console.log(`~~ DEVELOPMENT MODE ~~`)
-    console.log(`There's a new version out! Here's what the tweet would look like: \n\n${tweetContent}\n`)
+    console.log(`\n~~ DEVELOPMENT MODE ~~`)
+    console.log(`\nThere's a new version out! Here's what the tweet would look like: \n\n${tweetContent}\n`)
   }
-}
+} 
 
-const showRateLimit = () => {
-  octokit.misc.getRateLimit({}, (error, result) => {
-    console.log(`\n===== GitHub Info =====\n`)
-    console.log(`GitHub API Status Code: ${result.status}`)
-    console.log(`GitHub API Uses (Total): ${result.data.rate.limit}`)
-    console.log(`GitHub Uses Left: ${result.data.rate.remaining}`)
-    console.log(`GitHub API Reset in: ${result.data.rate.reset} ms\n`)
-  })
-}
-
-// Run the function when the application is first run
-showRateLimit()
-checkAndSendNewTweet()
-
+// Start the Application
+nodekitten()
 // Set an interval to check again... and again... and again...
-setInterval(checkAndSendNewTweet, INTERVAL)
+setInterval(nodekitten, INTERVAL)
 
-// TEMPORARY: Hacking around Now's needs for HTTP
+// Hacking around Now's needs for an HTTP server
 const http = require('http');
 
 const hostname = '127.0.0.1';
@@ -100,5 +115,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+  console.log(`Server running at http://${hostname}:${port}/\n`);
 });
