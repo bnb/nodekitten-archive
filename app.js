@@ -2,10 +2,9 @@ const request = require('request')
 const twitter = require('twit')
 const semver = require('semver')
 const fs = require('fs')
-const data = require('./data/releases.json')
 
 // Define variables for the application
-const INTERVAL = 15 * 1000 // 15 seconds
+const INTERVAL = 1000 // 15 seconds
 const twitterConsumerKey = process.env.CONSUMER_KEY
 const twitterConsumerSecret = process.env.CONSUMER_SECRET
 const twitterAccessToken = process.env.ACCESS_TOKEN
@@ -62,6 +61,7 @@ const composeTweet = (version) => {
 
 // Expects raw/parsed JSON to be passed
 const diffVersions = (json) => {
+  let data = JSON.parse(fs.readFileSync('./data/releases.json'))
   let normalizedLocalJSON = JSON.stringify(data)
   let normalizedRemoteJSON = JSON.stringify(json)
 
