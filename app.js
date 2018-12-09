@@ -4,7 +4,7 @@ const semver = require('semver')
 const fs = require('fs')
 
 // Define variables for the application
-const INTERVAL = 1000 // 15 seconds
+const INTERVAL = 5 * 1000 // 15 seconds
 const twitterConsumerKey = process.env.CONSUMER_KEY
 const twitterConsumerSecret = process.env.CONSUMER_SECRET
 const twitterAccessToken = process.env.ACCESS_TOKEN
