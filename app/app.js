@@ -1,5 +1,5 @@
-const Twitter = require('twit')
 const request = require('request')
+const Twitter = require('twit')
 const semver = require('semver')
 const fs = require('fs')
 
