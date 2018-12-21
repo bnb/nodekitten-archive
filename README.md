@@ -2,7 +2,7 @@
 
 > A [Node.js Twitter bot](https://twitter.com/nodekitten) to Tweet Node.js Releases 😸
 
-## How to Start the App
+## How to Start the App Locally
 
 Be sure to install dependencies first:
 
@@ -13,46 +13,86 @@ npm install
 You will need to pass a few environment variables (`GITHUB_TOKEN`, `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, and `ACCESS_TOKEN_SECRET`)in with your GitHub token and Twitter API credentials. See the Setup subheading for more details.
 
 
-You can start the application by running the `app.js` file with Node.js:
+You can start the application by running the `data/app.js` file with Node.js:
 
 ```
 node app.js
 ```
 
-## Deploy Version
-There is currently a hard-coded variable called `deployVersion`. This will set the inital version that the bot is deployed with. If the current version check matches the deploy version, no tweet will be sent out.
+## Deploying With Docker
 
-If you want to test what the message will look like, you'll want to set the deploy version to something other than the latest release on the [Node.js releases page](https://github.com/nodejs/node/releases).
+### Setup: Environment Variables
 
-There are still some rough edges around this and the `previousVersion` variable (which could be merged). Going to be working on this in the future 👍
+There's a bit of data that's missing from this repo. Specifically, the environment variables containing the Twitter API keys and setting `NODE_ENV` to `production`.
 
-## Setup: What's Missing from this Repository
+These are the variables you'll need to set regardless of how you're deploying to production:
 
-There's a bit of code that's missing from this repo. Specifically, my `now.json` file has been ignored via `.gitignore` becuase it contains both my GitHub and Twitter auth tokens for API calls.
-
-If you _don't_ want to deploy to ZEIT's Now, you can just pass the environment variables as... environment variables, wherever you're running your application. For local testing, I use the following command:
-
+```bash
+CONSUMER_KEY="<your Twitter API consumer key>"
+CONSUMER_SECRET="<your Twitter API consumer secret>"
+ACCESS_TOKEN="<your Twitter API access token>"
+ACCESS_TOKEN_SECRET="<your Twitter API access token secret>"
+NODE_ENV="production"
 ```
-GITHUB_TOKEN="" CONSUMER_KEY="" CONSUMER_SECRET="" ACCESS_TOKEN="" ACCESS_TOKEN_SECRET="" node app.js
-```
-Here's a template of what _my_ `now.json` file looks like, with those tokens redacted:
 
-```JSON
-{
-  "env": {
-    "NODE_ENV": "production",
-    "GITHUB_TOKEN": "",
-    "CONSUMER_KEY": "",
-    "CONSUMER_SECRET": "",
-    "ACCESS_TOKEN": "",
-    "ACCESS_TOKEN_SECRET": ""
-  }
-}
+### Deploy: Guide for Azure
+I've deployed the Dockerized NodeKitten to Azure using [Azure Container Instances](https://azure.microsoft.com/en-us/services/container-instances/).
+
+I always name the containers I use for this app `nodekitten` and have named the resource group `nodekittenResourceGroup`. If you'd like to use different names, you can change them where they're used.
+
+**Create a Resource Group:**
 ```
-### Guide to Needed/Used Environment Variables
+az group create --name nodekittenResourceGroup --location eastus
+```
+
+#### Deploy in Development Mode
+By deploying without the production evnironment variables, you can make sure everything goes smoothly and there are no issues with the container itself.
+
+**Deploy without Environment Variables:**
+```
+az container create --resource-group nodekittenResourceGroup --name nodekitten --image bitandbang/nodekitten:latest --dns-name-label nodekitten-dns --ports 80
+```
+
+**Kill the Container:**
+```
+az container delete --resource-group nodekittenResourceGroup --name nodekitten
+```
+
+
+#### Deploy to Prodcution
+
+> **Note:** Make sure you add your Twitter API keys to the empty strings.
+
+**Deploy with Environment Variables:**
+```
+az container create --resource-group nodekittenResourceGroup --name nodekitten --image bitandbang/nodekitten:latest --dns-name-label nodekitten-dns --ports 80 --environment-variables 'CONSUMER_KEY'='' 'CONSUMER_SECRET'='' 'ACCESS_TOKEN'='' 'ACCESS_TOKEN_SECRET'='' 'NODE_ENV'='production'
+```
+
+#### Other Useful ACI Commands for NodeKitten
+
+**Check the status of your deployment:**
+```
+az container show --resource-group nodekittenResourceGroup --name nodekitten --query "{FQDN:ipAddress.fqdn,ProvisioningState:provisioningState}" --out table
+```
+
+**Pull the container logs:**
+```
+az container logs --resource-group nodekittenResourceGroup --name nodekitten
+```
+
+**Delete the Container:**
+```
+az container delete --resource-group nodekittenResourceGroup --name nodekitten
+```
+
+**Delete the Resource Group:**
+```
+az group delete --name nodekittenResourceGroup
+```
+
+
+### Context: Environment Variables Required for Production
 `NODE_ENV`: Should be `production` unless you want to deploy a development environment. Will only be considered production ready with this environment variable set to `production`.
-
-`GITHUB_TOKEN`: Your GitHub personal token. This bot will use some of your 5k hourly requests (depending on what the `INTERVAL` variable is set to).
 
 `CONSUMER_KEY`: Twitter Consumer Key. Can be obtained from setting up Twitter API access from an account.
 
