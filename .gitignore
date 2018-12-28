@@ -1,29 +1,3 @@
-bin
-obj
-csx
-.vs
-edge
-Publish
-
-*.user
-*.suo
-*.cscfg
-*.Cache
-project.lock.json
-
-/packages
-/TestResults
-
-/tools/NuGet.exe
-/App_Data
-/secrets
-/data
-.secrets
-appsettings.json
-local.settings.json
-
-node_modules
-
 # Logs
 logs
 *.log
@@ -104,3 +78,30 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+# Azure Functions
+
+bin
+obj
+csx
+.vs
+edge
+Publish
+
+*.user
+*.suo
+*.cscfg
+*.Cache
+project.lock.json
+
+/packages
+/TestResults
+
+/tools/NuGet.exe
+/App_Data
+/secrets
+/data
+.secrets
+appsettings.json
+local.settings.json
+extensions.csproj
