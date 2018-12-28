@@ -104,4 +104,3 @@ project.lock.json
 .secrets
 appsettings.json
 local.settings.json
-extensions.csproj
