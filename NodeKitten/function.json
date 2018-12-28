@@ -11,13 +11,15 @@
         "name": "nodekittenLocalRead",
         "type": "blob",
         "path": "releases/releases.json",
-        "direction": "in"
+        "direction": "in",
+        "connection":"tierneynodekitten"
     },
     {
       "name": "nodekittenLocalWrite",
       "type": "blob",
       "path": "releases/releases.json",
-      "direction": "out"
+      "direction": "out",
+      "connection":"tierneynodekitten"
     }
   ]
 }
