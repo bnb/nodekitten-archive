@@ -5,7 +5,19 @@
       "name": "nodekitten",
       "type": "timerTrigger",
       "direction": "in",
-      "schedule": "0 */5 * * * *"
+      "schedule": "0/5 * * * * *"
+    },
+    {
+        "name": "nodekittenLocalRead",
+        "type": "blob",
+        "path": "releases/releases.json",
+        "direction": "in"
+    },
+    {
+      "name": "nodekittenLocalWrite",
+      "type": "blob",
+      "path": "releases/releases.json",
+      "direction": "out"
     }
   ]
 }
