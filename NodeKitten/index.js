@@ -17,12 +17,13 @@ module.exports = async (context) => {
     let raw = JSON.parse(body)
     diffVersions(context, raw)
   })
+  context.done()
 }
 
 // Calls: fs.writeFile
 const writeVersions = (context, json) => {
   console.log(json)
-  // context.bindings.outputNodekittenBlob = JSON.stringify(json)
+  context.bindings.nodekittenOutputBlob = JSON.stringify(json)
   context.log('JSON has been written to data/release.json')
 }
 
@@ -59,7 +60,7 @@ const composeTweet = (context, version) => {
 // Expects raw/parsed JSON to be passed
 // Calls: diffs(), writeVersions()
 const diffVersions = (context, json) => {
-  let data = JSON.parse(context.bindings.nodekittenLocalRead)
+  let data = JSON.parse(context.bindings.nodekittenInputBlob)
   let normalizedLocalJSON = JSON.stringify(data)
   let normalizedRemoteJSON = JSON.stringify(json)
 

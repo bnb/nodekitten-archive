@@ -8,18 +8,16 @@
       "schedule": "0/5 * * * * *"
     },
     {
-        "name": "nodekittenLocalRead",
-        "type": "blob",
-        "path": "releases/releases.json",
-        "direction": "in",
-        "connection":"tierneynodekitten"
+      "name": "nodekittenInputBlob",
+      "type": "blob",
+      "path": "releases/{data}",
+      "direction": "in"
     },
     {
-      "name": "nodekittenLocalWrite",
+      "name": "nodeKittenOutputBlob",
       "type": "blob",
-      "path": "releases/releases.json",
-      "direction": "out",
-      "connection":"tierneynodekitten"
+      "path": "releases/{data}",
+      "direction": "out"
     }
   ]
 }
